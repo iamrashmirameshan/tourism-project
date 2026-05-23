@@ -1,0 +1,50 @@
+
+name: MLOps CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Step 1: Checkout repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+
+      # Step 3: Install dependencies
+      - name: Install Dependencies
+        run: |
+          pip install -r tourism_project/deployment/requirements.txt
+
+      # Step 4: Run Data Preparation
+      - name: Run Data Preparation
+        env:
+          MY_MLOps_Token: ${{ secrets.MY_MLOPS_TOKEN }}
+        run: |
+          python tourism_project/model_building/prep.py
+
+      # Step 5: Run Model Training
+      - name: Run Model Training
+        env:
+          MY_MLOps_Token: ${{ secrets.MY_MLOPS_TOKEN }}
+        run: |
+          python tourism_project/model_building/train.py
+
+      # Step 6: Upload deployment files to Hugging Face Space
+      - name: Deploy Streamlit App
+        env:
+          MY_MLOps_Token: ${{ secrets.MY_MLOPS_TOKEN }}
+        run: |
+          python tourism_project/hosting/hosting.py
